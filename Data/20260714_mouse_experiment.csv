@@ -1,0 +1,18 @@
+﻿experiment,mouse,group,day,status
+1,1,PBS,8,1
+1,2,PBS,9,1
+1,3,PBS,8,1
+1,4,PBS,8,1
+1,5,PBS,10,1
+1,6,Unabsorbed,14,0
+1,7,Unabsorbed,14,0
+1,8,Unabsorbed,13,1
+1,9,Unabsorbed,9,1
+1,10,Unabsorbed,14,0
+1,12,HA absorbed,9,1
+1,13,HA absorbed,12,1
+1,15,HA absorbed,10,1
+1,16,NA absorbed,14,0
+1,17,NA absorbed,9,1
+1,18,NA absorbed,14,0
+1,19,NA absorbed,14,0
