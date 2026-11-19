@@ -7,107 +7,60 @@ library(grid)
 library(cowplot)
 library(ggpubr)
 
-df <- read.csv("/Users/jort/Documents/R/seasonal-vaccination-h5n1-serology/Data/human_sera_escape_dms.csv")
-site_mapping_df <- read.csv("/Users/jort/Documents/R/seasonal-vaccination-h5n1-serology/Data/site_numbering_map_dms.csv")
+df <- read.csv("../Data/neut_depletion_efficiencies.csv")
 
-combined_df <- left_join(df, site_mapping_df, by=c("site" = "reference_site"))
+df$Condition <- factor(df$Condition, levels=c("Mock","Stalk","H5 HA","N1 NA","HA+NA"))
+df$Depletion <- pmax(df$Depletion, 0)
 
-sum_df <- combined_df %>%
-  mutate(escape = pmax(escape, 0), ha_domain = ifelse(region == "HA2", "HA2", "HA1")) %>%
-  # group_by(antibody, site, sequential_site, mature_H5_site, region) %>%
-  summarize(sum = sum(escape), .by = c(antibody, site, sequential_site, mature_H5_site, region, ha_domain)) %>%  #, sequential_site = sequential_site, region = region) %>%
-  ungroup()
-sum_df
+df <- df %>%
+  mutate(Color = Titer == 100)
+df$Color = factor(df$Color, levels=c("TRUE", "FALSE"))
 
-for (p in unique(sum_df$antibody)) {
-  p_lab <- str_sub(p, -4)
-  
-  plot_df <- sum_df %>% filter(antibody == p) %>% arrange(sequential_site)
-  plot_df$ln_grp <- cumsum(c(1, diff(plot_df$sequential_site) != 1))
-  
-  height <- 0.6
-  
-  plot <- ggplot(plot_df, aes(x=sequential_site, y=sum, group=ln_grp)) +
-    geom_point(size=0.4) +
-    geom_line(linewidth=0.15) +
-    theme_classic(base_size = 12) +
-    scale_y_continuous(limits = c(0,10),
-                       breaks = seq(0,10,2)) +
-    scale_x_continuous(limits = c(0,NA),
-                       breaks = NULL) +
-    coord_cartesian(xlim=c(20,547),
-                    ylim = c(0.41,9.5)) +
-    labs(#title = p_lab,
-         x = NULL,
-         y = "Escape") +
-    theme(
-      plot.title = element_text(hjust = 0.5, face = "bold",
-                                margin = margin(b = -10)),
-      legend.position = "none",
-      panel.background = element_blank(),
-      plot.background  = element_blank(),
-      legend.background = element_blank(),
-      legend.box.background = element_blank(),
-      strip.background = element_blank(),
-      axis.line = element_line(linewidth = 0.35),
-    )
-  
-  if (p_lab == '0002') {
-    plot <- plot +
-      geom_rect(
-        data = plot_df %>% 
-          group_by(ha_domain) %>% 
-          summarise(xmin = min(sequential_site, na.rm = TRUE),
-                    xmax = max(sequential_site, na.rm = TRUE),
-                    .groups = "drop"),
-        aes(xmin = xmin, xmax = xmax, ymin = 8.25, ymax = 9.75, fill = ha_domain),
-        inherit.aes = FALSE,
-        color = "black",
-        linewidth = 0.3
+for (p in unique(df$Participant)) {
+  for (a in unique(df$Antigen)) {
+    plot <- ggplot(df %>% filter(Participant == p & Antigen == a), aes(x=Condition, y=Depletion, fill=Color, shape=factor(Replicate))) +
+      geom_point(size=3) +
+      scale_shape_manual(values = c("1" = 21, "2" = 22), name="Replicate") +
+      scale_fill_manual(values = c("TRUE" = "#BBBBBB", "FALSE" = "white"), name="Below LOD", labels = c("TRUE" = "True", "FALSE" = "False")) +
+      scale_y_continuous(limits=c(0,100)) +
+      theme_classic(base_size=12) +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            panel.background = element_blank(),
+            strip.background = element_blank(),
+            rect = element_blank(),
+            legend.position = "none",
+            axis.text.x = element_text(color = "black", angle = 0, hjust = 0.5),
+            axis.text.y = element_text(color = "black"),
+            plot.title = element_text(hjust = 0.5, size = 7),
+            # axis.text = element_text(size = 9),
+            # axis.title = element_text(size = 9),
+            panel.border = element_rect(color = "black", linewidth = 0.6, fill = NA),
+            axis.line = element_line(linewidth = 0),
+            strip.text = element_text(size = 12),
+            plot.margin = margin(10, 30, 10, 10)
       ) +
-      scale_fill_manual(values = c("#F59E0B", "#D97706")) +
-      geom_text(
-        data = plot_df %>% 
-          group_by(ha_domain) %>% 
-          summarise(x = (min(sequential_site, na.rm = TRUE) + max(sequential_site, na.rm = TRUE))/2,
-                    .groups = "drop"),
-        aes(x = x, y = 9, label = ha_domain),
-        inherit.aes = FALSE,
-        size = 3
-      )
-  }
-  
-  if (p_lab == '0210') {
-    plot <- plot +
-      scale_x_continuous(
-        limits = c(0, NA),
-        breaks = seq(0,500,100)
-      ) +
-      labs(x = "HA resiude")
-    height <- 0.8
-  }
-  
-  # show(plot)
-  path <- paste0("seasonal-vaccination-h5n1-serology/Figures/", p, "-dms_escape.pdf")
-  ggsave(path, width = 2.5, height = height, dpi = 300, scale = 2, bg = "transparent")
+      labs(x="Depletion condition", y="% Depletion") +
+      scale_x_discrete(labels = c("Mock"="Mock",
+                                  "Stalk"="HL H5",
+                                  "H5 HA"="FL H5",
+                                  "N1 NA"="N1 NA",
+                                  "HA+NA"="HA+NA"))
+    
+    path <- paste0("../Figures/",p,"_",a,"_neutDepletion.pdf")
+    ggsave(path, width = 2, height = 1.5, dpi = 300, scale = 2, bg = "transparent")
+    
+    }
 }
 
 
+legend_plot <- plot +
+  theme(legend.position = "right") +
+  guides(
+    shape = guide_legend(order=1, override.aes = list(fill = "#FFFFFF", color = "black", size = 3)),
+    fill  = guide_legend(order=2, override.aes = list(shape = 21, color = "black", size = 3))
+  )
 
-path <- "seasonal-vaccination-h5n1-serology/Figures/dms_escape-protein_legend.pdf"
-pdf(file = path, width=2.5, height=4)
-plot.new()
-
-colorlegend(
-  colbar = colorRampPalette(c("#FFFFFF", "#DB5F57"))(200),
-  labels = c("No escape", "High escape"),
-  vertical = TRUE,
-  ratio.colbar = 0.25,
-  xlim = c(0, 1),
-  ylim = c(0, 1),
-  align = "l",
-  cex = 0.8
-)
-
-dev.off()
-
+legend <- cowplot::ggdraw(cowplot::get_legend(legend_plot))
+path <- "../Figures/neutDepletion-separateLegend.pdf"
+ggsave(path, legend, width = 2.5, height = 2)

@@ -45,7 +45,7 @@ extract_mixed_model_data <- function(mod, model_name) {
 }
 
 # Load results
-wide_df <- read_csv("seasonal-vaccination-h5n1-serology/Data/compiled_titers.csv")
+wide_df <- read_csv("../Data/compiled_titers.csv")
 
 mod <- lmer(
   log2(NT90) ~ log2(H5_stalk) +
@@ -83,7 +83,7 @@ mod_dem_data <- extract_mixed_model_data(mod_dem, "Adjusted")
 
 # Combine dataframes
 combined_df <- bind_rows(mod_data, mod_dem_data)
-write_csv(combined_df, "seasonal-vaccination-h5n1-serology/Tables/linear_mixed_models.csv")
+write_csv(combined_df, "../Tables/linear_mixed_models.csv")
 
 # Mapping for term names
 mapping <- c(
@@ -152,10 +152,10 @@ plot <- ggplot(plot_df, aes(x = estimate, y = term_pretty, shape = model)) +
   scale_x_continuous(limits = c(-0.6, 0.8))
 
 show(plot)
-path <- "testModelCoefficients-without_with_adjustment.pdf"
+path <- "../Figures/ModelCoefficients-without_with_adjustment.pdf"
 ggsave(path, width=3.25, height=1.75, dpi=300, scale=2, bg="transparent")
 
-path <- "testModelCoefficients-without_with_adjustment-customLegend.pdf"
+path <- "../Figures/ModelCoefficients-without_with_adjustment-customLegend.pdf"
 pdf(file = path, width=2, height=4)
 plot.new()
 
@@ -216,7 +216,7 @@ mod_h5fl_dem_data <- extract_mixed_model_data(mod_h5fl, "H5 full-length only")
 
 combined_singleHA_df <- bind_rows(mod_h1stalk_data, mod_h5stalk_data, mod_h5fl_dem_data)
 
-write_csv(combined_singleHA_df, "seasonal-vaccination-h5n1-serology/Tables/linear_mixed_models-single_HA_titer.csv")
+write_csv(combined_singleHA_df, "../Tables/linear_mixed_models-single_HA_titer.csv")
 
 
 
@@ -305,7 +305,7 @@ fc_mod_dem_data <- extract_model_data(fc_mod_dem, "Adjusted")
 
 # Combine dataframes
 fc_combined_df <- bind_rows(fc_mod_data, fc_mod_dem_data)
-write_csv(fc_combined_df, "seasonal-vaccination-h5n1-serology/Tables/fc_linear_models.csv")
+write_csv(fc_combined_df, "../Tables/fc_linear_models.csv")
 
 # Mapping for term names
 fc_mapping <- c(
@@ -374,10 +374,10 @@ plot <- ggplot(fc_plot_df, aes(x = estimate, y = term_pretty, shape = model)) +
   scale_x_continuous(limits = c(-0.6, 0.8))
 
 show(plot)
-path <- "testModelCoefficients-FoldChange-without_with_adjustment.pdf"
+path <- "../Figures/ModelCoefficients-FoldChange-without_with_adjustment.pdf"
 ggsave(path, width=3.25, height=1.75, dpi=300, scale=2, bg="transparent")
 
-path <- "testModelCoefficients-FoldChange-without_with_adjustment-customLegend.pdf"
+path <- "../Figures/ModelCoefficients-FoldChange-without_with_adjustment-customLegend.pdf"
 pdf(file = path, width=2, height=4)
 plot.new()
 
